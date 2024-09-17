@@ -15,6 +15,9 @@ import {
   Ban,
   PencilRuler,
   ScissorsSquareDashedBottom,
+  Square,
+  RectangleHorizontal,
+  RectangleVertical,
 } from 'lucide-react'
 import { CldImageProps } from 'next-cloudinary'
 
@@ -61,6 +64,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResources }) => {
 
   const [enhancements, setEnhancements] = useState<string>()
   const [crop, setCrop] = useState<string>()
+  const [filter, setFilter] = useState<string>()
 
   type Transformations = Omit<CldImageProps, 'src' | 'alt'>
   const transformations: Transformations = {}
@@ -73,7 +77,35 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResources }) => {
     transformations.removeBackground = true
   }
 
-  console.log('enhancements', enhancements)
+  if (crop === 'square') {
+    if (resource.width > resource.height) {
+      transformations.height = resource.width
+    } else {
+      transformations.width = resource.height
+    }
+    transformations.crop = {
+      source: true,
+      type: 'fill',
+    }
+  } else if (crop === 'landscape') {
+    transformations.height = Math.floor(resource.width / (16 / 9))
+    transformations.crop = {
+      source: true,
+      type: 'fill',
+    }
+  } else if (crop === 'portrait') {
+    transformations.width = Math.floor(resource.height / (16 / 9))
+    transformations.crop = {
+      source: true,
+      type: 'fill',
+    }
+  }
+
+  if (typeof filter === 'string' && ['grayscale', 'sepia'].includes(filter)) {
+    transformations[filter as keyof Transformations] = true
+  } else if (typeof filter === 'string' && ['sizzle'].includes(filter)) {
+    transformations.art = filter
+  }
 
   // Canvas sizing based on the image dimensions. The tricky thing about
   // showing a single image in a space like this in a responsive way is trying
@@ -82,8 +114,8 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResources }) => {
   // determine whether it's landscape, portrait, or square, and change a little
   // CSS to make it appear centered and scalable!
 
-  const canvasHeight = resource.height
-  const canvasWidth = resource.width
+  const canvasHeight = transformations.height || resource.height
+  const canvasWidth = transformations.width || resource.width
 
   const isSquare = canvasHeight === canvasWidth
   const isLandscape = canvasWidth > canvasHeight
@@ -284,7 +316,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResources }) => {
                     }`}
                     onClick={() => setCrop('square')}
                   >
-                    <Image className='w-5 h-5 mr-3' />
+                    <Square className='w-5 h-5 mr-3' />
                     <span className='text-[1.01rem]'>Square</span>
                   </Button>
                 </li>
@@ -298,7 +330,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResources }) => {
                     }`}
                     onClick={() => setCrop('landscape')}
                   >
-                    <Image className='w-5 h-5 mr-3' />
+                    <RectangleHorizontal className='w-5 h-5 mr-3' />
                     <span className='text-[1.01rem]'>landscape</span>
                   </Button>
                 </li>
@@ -312,7 +344,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResources }) => {
                     }`}
                     onClick={() => setCrop('portrait')}
                   >
-                    <Image className='w-5 h-5 mr-3' />
+                    <RectangleVertical className='w-5 h-5 mr-3' />
                     <span className='text-[1.01rem]'>Portrait</span>
                   </Button>
                 </li>
@@ -326,12 +358,73 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResources }) => {
               </SheetHeader>
               <ul className='grid grid-cols-2 gap-2'>
                 <li>
-                  <button className={`w-full border-4 border-white`}>
-                    <img
-                      width={resource.width}
-                      height={resource.height}
-                      src='/icon-1024x1024.png'
+                  <button
+                    className={`w-full border-4 ${
+                      !filter ? 'border-white' : 'border-transparent'
+                    }`}
+                    onClick={() => setFilter(undefined)}
+                  >
+                    <CldImage
+                      width={156}
+                      height={156}
+                      crop='fill'
+                      src={resource.public_id}
                       alt='No Filter'
+                    />
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className={`w-full border-4 ${
+                      filter === 'sepia' ? 'border-white' : 'border-transparent'
+                    }`}
+                    onClick={() => setFilter('sepia')}
+                  >
+                    <CldImage
+                      width={156}
+                      height={156}
+                      crop='fill'
+                      sepia
+                      src={resource.public_id}
+                      alt='Sepia'
+                    />
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className={`w-full border-4 ${
+                      filter === 'sizzle'
+                        ? 'border-white'
+                        : 'border-transparent'
+                    }`}
+                    onClick={() => setFilter('sizzle')}
+                  >
+                    <CldImage
+                      width={156}
+                      height={156}
+                      crop='fill'
+                      art='sizzle'
+                      src={resource.public_id}
+                      alt='Sizzle'
+                    />
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className={`w-full border-4 ${
+                      filter === 'grayscale'
+                        ? 'border-white'
+                        : 'border-transparent'
+                    }`}
+                    onClick={() => setFilter('grayscale')}
+                  >
+                    <CldImage
+                      width={156}
+                      height={156}
+                      crop='fill'
+                      grayscale
+                      src={resource.public_id}
+                      alt='Grayscale'
                     />
                   </button>
                 </li>
