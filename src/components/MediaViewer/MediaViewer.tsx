@@ -13,8 +13,10 @@ import {
   Wand2,
   Image,
   Ban,
+  PencilRuler,
+  ScissorsSquareDashedBottom,
 } from 'lucide-react'
-import { CldImage } from 'next-cloudinary'
+import { CldImageProps } from 'next-cloudinary'
 
 import Container from '@/components/Container'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -41,6 +43,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { CloudinaryResources } from '@/types/cloudinary'
+import CldImage from '../CldImage'
 
 interface Deletion {
   state: string
@@ -55,6 +58,22 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResources }) => {
   const [filterSheetIsOpen, setFilterSheetIsOpen] = useState(false)
   const [infoSheetIsOpen, setInfoSheetIsOpen] = useState(false)
   const [deletion, setDeletion] = useState<Deletion>()
+
+  const [enhancements, setEnhancements] = useState<string>()
+  const [crop, setCrop] = useState<string>()
+
+  type Transformations = Omit<CldImageProps, 'src' | 'alt'>
+  const transformations: Transformations = {}
+
+  if (enhancements === 'restore') {
+    transformations.restore = true
+  } else if (enhancements === 'improve') {
+    transformations.improve = true
+  } else if (enhancements === 'remove-background') {
+    transformations.removeBackground = true
+  }
+
+  console.log('enhancements', enhancements)
 
   // Canvas sizing based on the image dimensions. The tricky thing about
   // showing a single image in a space like this in a responsive way is trying
@@ -185,7 +204,10 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResources }) => {
                 <li>
                   <Button
                     variant='ghost'
-                    className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 border-white`}
+                    className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 ${
+                      !enhancements ? 'border-white' : 'border-transparent'
+                    }`}
+                    onClick={() => setEnhancements(undefined)}
                   >
                     <Ban className='w-5 h-5 mr-3' />
                     <span className='text-[1.01rem]'>None</span>
@@ -194,27 +216,42 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResources }) => {
                 <li>
                   <Button
                     variant='ghost'
-                    className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 border-white`}
+                    className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 ${
+                      enhancements === 'improve'
+                        ? 'border-white'
+                        : 'border-transparent'
+                    }`}
+                    onClick={() => setEnhancements('improve')}
                   >
-                    <Ban className='w-5 h-5 mr-3' />
+                    <Wand2 className='w-5 h-5 mr-3' />
                     <span className='text-[1.01rem]'>Improve</span>
                   </Button>
                 </li>
                 <li>
                   <Button
                     variant='ghost'
-                    className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 border-white`}
+                    className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 ${
+                      enhancements === 'restore'
+                        ? 'border-white'
+                        : 'border-transparent'
+                    }`}
+                    onClick={() => setEnhancements('restore')}
                   >
-                    <Ban className='w-5 h-5 mr-3' />
+                    <PencilRuler className='w-5 h-5 mr-3' />
                     <span className='text-[1.01rem]'>Restore</span>
                   </Button>
                 </li>
                 <li>
                   <Button
                     variant='ghost'
-                    className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 border-white`}
+                    className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 ${
+                      enhancements === 'remove-background'
+                        ? 'border-white'
+                        : 'border-transparent'
+                    }`}
+                    onClick={() => setEnhancements('remove-background')}
                   >
-                    <Ban className='w-5 h-5 mr-3' />
+                    <ScissorsSquareDashedBottom className='w-5 h-5 mr-3' />
                     <span className='text-[1.01rem]'>Remove Background</span>
                   </Button>
                 </li>
@@ -230,10 +267,53 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResources }) => {
                 <li>
                   <Button
                     variant='ghost'
-                    className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 border-white`}
+                    className={`text-left justify-start w-full h-14 border-4 bg-zinc-700  ${
+                      !crop ? 'border-white' : 'border-transparent'
+                    }`}
+                    onClick={() => setCrop(undefined)}
                   >
                     <Image className='w-5 h-5 mr-3' />
                     <span className='text-[1.01rem]'>Original</span>
+                  </Button>
+                </li>
+                <li>
+                  <Button
+                    variant='ghost'
+                    className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 ${
+                      crop === 'square' ? 'border-white' : 'border-transparent'
+                    }`}
+                    onClick={() => setCrop('square')}
+                  >
+                    <Image className='w-5 h-5 mr-3' />
+                    <span className='text-[1.01rem]'>Square</span>
+                  </Button>
+                </li>
+                <li>
+                  <Button
+                    variant='ghost'
+                    className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 ${
+                      crop === 'landscape'
+                        ? 'border-white'
+                        : 'border-transparent'
+                    }`}
+                    onClick={() => setCrop('landscape')}
+                  >
+                    <Image className='w-5 h-5 mr-3' />
+                    <span className='text-[1.01rem]'>landscape</span>
+                  </Button>
+                </li>
+                <li>
+                  <Button
+                    variant='ghost'
+                    className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 ${
+                      crop === 'portrait'
+                        ? 'border-white'
+                        : 'border-transparent'
+                    }`}
+                    onClick={() => setCrop('portrait')}
+                  >
+                    <Image className='w-5 h-5 mr-3' />
+                    <span className='text-[1.01rem]'>Portrait</span>
                   </Button>
                 </li>
               </ul>
@@ -390,12 +470,14 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResources }) => {
 
       <div className='relative flex justify-center items-center align-center w-full h-full'>
         <CldImage
+          key={JSON.stringify(transformations)}
           className='object-contain'
           width={resource.width}
           height={resource.height}
           src={resource.public_id}
           alt={`Image ${resource.public_id}`}
           style={imgStyles}
+          {...transformations}
         />
       </div>
     </div>
